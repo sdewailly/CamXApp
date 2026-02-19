@@ -1,0 +1,46 @@
+# Built artifacts
+/build
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/.idea/modules/
+/.idea/jarRepositories.xml
+/.idea/compiler.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/kotlinc.xml
+
+# Android Studio / IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Gradle
+.gradle/
+build/
+
+# Kotlin
+.kotlin/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Captured files
+/captures
+
+# External Native Build
+.externalNativeBuild
+.cxx
+
+# Signing files
+*.jks
+*.keystore
+
+# Google Services
+app/google-services.json
