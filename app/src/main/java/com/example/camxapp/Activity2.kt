@@ -55,7 +55,6 @@ class Activity2 : AppCompatActivity() {
         viewBinding = Activity2Binding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-        // Preload the shutter sound
         sound.load(MediaActionSound.SHUTTER_CLICK)
 
         if (allPermissionsGranted()) {
@@ -64,13 +63,13 @@ class Activity2 : AppCompatActivity() {
             requestPermissions()
         }
 
-        // Single click for one photo
         viewBinding.imageCaptureButton.setOnClickListener {
             takePhoto()
         }
 
-        // Long click for burst of 5 photos
         viewBinding.imageCaptureButton.setOnLongClickListener {
+            // Increment once for the entire burst
+            EspressoIdlingResource.increment()
             takeBurst(5)
             true
         }
@@ -78,8 +77,11 @@ class Activity2 : AppCompatActivity() {
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
-    private fun takePhoto(callback: (() -> Unit)? = null) {
+    private fun takePhoto(isBurstPart: Boolean = false, callback: (() -> Unit)? = null) {
         val imageCapture = imageCapture ?: return
+
+        // Only increment/decrement if it's NOT part of a burst (burst manages its own)
+        if (!isBurstPart) EspressoIdlingResource.increment()
 
         val extra: Bundle? = intent.extras
         val container_num = extra?.getString("container")
@@ -100,7 +102,6 @@ class Activity2 : AppCompatActivity() {
                 contentValues)
             .build()
 
-        // Play the shutter sound
         sound.play(MediaActionSound.SHUTTER_CLICK)
 
         imageCapture.takePicture(
@@ -109,23 +110,29 @@ class Activity2 : AppCompatActivity() {
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
                     Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
+                    if (!isBurstPart) EspressoIdlingResource.decrement()
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults){
                     val msg = "Photo capture succeeded: ${output.savedUri}"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
-                    callback?.invoke() // Execute callback for burst mode
+                    
+                    if (!isBurstPart) EspressoIdlingResource.decrement()
+                    callback?.invoke()
                 }
             }
         )
     }
 
     private fun takeBurst(remaining: Int) {
-        if (remaining <= 0) return
+        if (remaining <= 0) {
+            // Burst finished, decrement the idling resource
+            EspressoIdlingResource.decrement()
+            return
+        }
         
-        takePhoto {
-            // Wait 500ms before taking the next photo
+        takePhoto(isBurstPart = true) {
             viewBinding.imageCaptureButton.postDelayed({
                 takeBurst(remaining - 1)
             }, 500)
@@ -154,7 +161,6 @@ class Activity2 : AppCompatActivity() {
                 val camera = cameraProvider.bindToLifecycle(
                     this, cameraSelector, preview, imageCapture)
 
-                // Implement pinch-to-zoom
                 val listener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                     override fun onScale(detector: ScaleGestureDetector): Boolean {
                         val currentZoomRatio = camera.cameraInfo.zoomState.value?.zoomRatio ?: 1f
