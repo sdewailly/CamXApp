@@ -1,4 +1,4 @@
-package com.example.camxapp
+package com.sebastien.camxapp
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -19,7 +19,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import com.example.camxapp.databinding.Activity2Binding
+import com.sebastien.camxapp.databinding.Activity2Binding
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.ExecutorService

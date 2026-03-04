@@ -1,4 +1,4 @@
-package com.example.camxapp
+package com.sebastien.camxapp
 
 import androidx.test.espresso.idling.CountingIdlingResource
 
