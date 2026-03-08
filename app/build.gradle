@@ -17,6 +17,15 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        def localProperties = new Properties()
+        def localPropertiesFile = rootProject.file('local.properties')
+        if (localPropertiesFile.exists()) {
+            localProperties.load(new FileInputStream(localPropertiesFile))
+        }
+
+        def playKey = localProperties.getProperty('PLAY_CONSOLE_PUBLIC_KEY') ?: ""
+        buildConfigField "String", "PLAY_CONSOLE_PUBLIC_KEY", "\"${playKey}\""
     }
 
     buildTypes {
@@ -50,6 +59,9 @@ dependencies {
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.analytics
     implementation libs.firebase.crashlytics
+
+    // Google Play Licensing Library (LVL) via Local Module
+    implementation project(':licensing')
 
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
