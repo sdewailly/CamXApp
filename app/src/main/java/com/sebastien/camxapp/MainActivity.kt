@@ -1,19 +1,18 @@
 package com.sebastien.camxapp
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.android.vending.licensing.AESObfuscator
 import com.android.vending.licensing.LicenseChecker
 import com.android.vending.licensing.LicenseCheckerCallback
-import com.android.vending.licensing.ServerManagedPolicy
-import com.sebastien.camxapp.BuildConfig
+import com.android.vending.licensing.StrictPolicy
 import com.sebastien.camxapp.R
 
 class MainActivity : AppCompatActivity() {
@@ -22,6 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
         // --- Vérification de Licence ---
         val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
@@ -30,24 +30,32 @@ class MainActivity : AppCompatActivity() {
         )
         
         val obfuscator = AESObfuscator(salt, packageName, deviceId)
-        val policy = ServerManagedPolicy(this, obfuscator)
+        val policy = StrictPolicy()
         
-        // Utilisation de la clé RSA injectée depuis local.properties
         checker = LicenseChecker(this, policy, BuildConfig.PLAY_CONSOLE_PUBLIC_KEY)
         
         checker.checkAccess(object : LicenseCheckerCallback {
             override fun allow(reason: Int) {
-                Log.d("Licensing", "Accès autorisé")
+                Log.d("Licensing", "Accès autorisé (Reason: $reason)")
             }
 
             override fun dontAllow(reason: Int) {
+                Log.w("Licensing", "Accès refusé (Reason: $reason)")
                 runOnUiThread {
-                    Toast.makeText(
-                        this@MainActivity, 
-                        "Application non licenciée. Veuillez l'utiliser via le Play Store.", 
-                        Toast.LENGTH_LONG
-                    ).show()
-                    finish() 
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(getString(R.string.license_required_title))
+                        .setMessage(getString(R.string.license_required_message))
+                        .setCancelable(false)
+                        .setPositiveButton(getString(R.string.quit)) { _, _ ->
+                            finishAffinity()
+                        }
+                        .setNeutralButton(getString(R.string.view_on_store)) { _, _ ->
+                            val url = "https://play.google.com/store/apps/details?id=$packageName"
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            startActivity(intent)
+                            finishAffinity()
+                        }
+                        .show()
                 }
             }
 
@@ -57,21 +65,28 @@ class MainActivity : AppCompatActivity() {
         })
         // --- Fin Vérification ---
 
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        
-        val bouton: Button = findViewById(R.id.start_activity)
-        bouton.setOnClickListener {
-            val intent = Intent(this, Activity2::class.java)
+        // Configuration du bouton de démarrage (Activity 2)
+        val boutonStart: Button = findViewById(R.id.start_activity)
+        boutonStart.setOnClickListener {
             val containerInput: EditText = findViewById(R.id.container)
-            val cont_num: String = containerInput.text.toString()
+            val contNum: String = containerInput.text.toString()
             val pattern = Regex("^[A-Z]{4}\\d{7}$")
-            if (pattern.matches(cont_num)){
-                intent.putExtra("container", cont_num)
+            if (pattern.matches(contNum)){
+                val intent = Intent(this, Activity2::class.java)
+                intent.putExtra("container", contNum)
                 startActivity(intent)
             } else {
                 containerInput.error = "Must start with 4 capital letters followed by exactly 7 digits"
             }
+        }
+
+        // Configuration du bouton DONATE
+        val donateButton: Button = findViewById(R.id.donate_button)
+        donateButton.setOnClickListener {
+            // Remplacez l'URL ci-dessous par votre lien PayPal, BuyMeACoffee ou autre
+            val url = "https://www.paypal.com/donate/?business=QCL67EUXHESQG&no_recurring=1&currency_code=EUR"
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
         }
     }
 
