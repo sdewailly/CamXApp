@@ -44,4 +44,4 @@ Pour exécuter les tests d'instrumentation (Espresso) :
 Votre vie privée est importante pour nous. Pour plus d'informations sur la manière dont nous traitons vos données, veuillez consulter notre [Politique de Confidentialité](PRIVACY_POLICY.md).
 
 ## Licence
-Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
+Ce projet est sous licence MIT.
